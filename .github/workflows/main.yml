@@ -10,12 +10,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y aria2
-          pip install -U "huggingface_hub[cli]"
+          pip install -U huggingface_hub
+
       - name: Download (The Speed Run)
-        id: download
         run: |
           mkdir -p data
-          # 2. Run aria2c with "God Mode" settings
           aria2c \
             --seed-time=0 \
             -x 16 -s 16 -j 16 \
@@ -23,9 +22,10 @@ jobs:
             --summary-interval=0 \
             --dir=./data \
             "${{ github.event.client_payload.magnet }}"
+
       - name: Upload to Hugging Face
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          # Upload the CONTENTS of /data to the ROOT of the dataset
+          export PATH="$HOME/.local/bin:$PATH"
           huggingface-cli upload ${{ github.event.client_payload.repo }} ./data . --repo-type dataset
