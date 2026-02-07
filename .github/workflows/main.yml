@@ -9,7 +9,7 @@ jobs:
       - name: Install Tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y aria2
+          sudo apt-get install -y aria2 mediainfo
           curl -LsSf https://hf.co/cli/install.sh | bash
 
       - name: Download (The Speed Run)
@@ -22,6 +22,14 @@ jobs:
             --summary-interval=0 \
             --dir=./data \
             "${{ github.event.client_payload.magnet }}"
+
+      - name: Generate MediaInfo Sidecars
+        run: |
+          cd data
+          find . -type f \( -name "*.mkv" -o -name "*.mp4" -o -name "*.avi" \) -print0 | while IFS= read -r -d '' file; do
+            echo "Scanning $file..."
+            mediainfo --Output=JSON "$file" > "$file.json"
+          done
 
       - name: Upload to Hugging Face
         env:
